@@ -1,0 +1,130 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Tajawal', sans-serif;
+  direction: rtl;
+}
+
+body {
+  background-color: #0f172a;
+  color: #f8f8f8;
+  line-height: 1.8;
+}
+
+/* رأس الصفحة */
+header {
+  background-color: #111827;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: gold;
+}
+
+nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  gap: 1rem;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+
+nav ul li a:hover {
+  background-color: gold;
+  color: black;
+}
+
+/* المقدمة */
+.main {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: linear-gradient(to right, #fbbf24, #facc15);
+  color: #1e293b;
+}
+
+.main h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.main p {
+  font-size: 1.2rem;
+}
+
+/* الأقسام */
+section {
+  padding: 3rem 2rem;
+}
+
+h2, h3 {
+  text-align: center;
+  color: gold;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+/* إنجازات */
+.carousel-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 1rem;
+}
+
+/* القطع الأثرية */
+.artifacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+/* قائمة المواقع الأثرية */
+.scrolling-places {
+  background-color: #1f2937;
+  padding: 2rem;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 2rem;
+  border-radius: 10px;
+}
+
+.scrolling-places h3 {
+  color: #facc15;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.scrolling-places ul {
+  list-style: none;
+  padding: 0;
+}
+
+.scrolling-places li {
+  padding: 0.5rem;
+  border-bottom: 1px solid #374151;
+}
+
+.scrolling-places li:last-child {
+  border-bottom: none;
+}

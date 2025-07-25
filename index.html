@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Horus View 👁️🦅</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Tailwind CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Google Fonts: Cairo -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- External JS Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="/js.js"></script>
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+      #map {
+        height: 90vh;
+        width: 100%;
+      }
+      body {
+        background-color: #0f172a;
+        color: #fff;
+        font-family: "Cairo", sans-serif;
+      }
+
+      #particles-js {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: -1;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: box-shadow 0.3s ease;
+      }
+
+      .glass:hover {
+        box-shadow: 0 0 15px 3px #facc15;
+      }
+
+      .section {
+        padding: 4rem 1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* خط زمني مركزي */
+      .timeline-container {
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        padding-left: 40px;
+        padding-right: 40px;
+      }
+
+      .timeline-line {
+        position: absolute;
+        left: 20px;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: #facc15;
+        border-radius: 10px;
+        z-index: 0;
+      }
+
+      .timeline-item {
+        position: relative;
+        background: rgba(255 255 255 / 0.1);
+        border-radius: 12px;
+        padding: 1rem 1.5rem 1rem 3rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 0 15px rgb(250 204 21 / 0.4);
+        border: 1px solid rgba(255 255 255 / 0.15);
+        backdrop-filter: blur(6px);
+        text-align: right;
+        z-index: 1;
+      }
+
+      .timeline-point {
+        position: absolute;
+        left: -36px;
+        top: 1.4rem;
+        width: 28px;
+        height: 28px;
+        background: #facc15;
+        border-radius: 50%;
+        border: 3px solid #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        cursor: default;
+        user-select: none;
+        box-shadow: 0 0 6px #facc15aa;
+        transition: transform 0.3s ease;
+      }
+
+      .timeline-point:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 12px #facc15ff;
+      }
+
+      /* قاموس الرموز الهيروغليفية */
+      .tooltip {
+        position: relative;
+        cursor: help;
+        outline-offset: 3px;
+      }
+
+      .tooltip:hover .tooltip-text,
+      .tooltip:focus .tooltip-text {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .tooltip-text {
+        position: absolute;
+        bottom: 125%;
+        right: 50%;
+        transform: translateX(50%) translateY(10px);
+        background: #facc15;
+        color: #0f172a;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 10;
+        user-select: none;
+      }
+
+      /* تأثير Hover على القاموس */
+      .glyph-item {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .glyph-item:hover,
+      .glyph-item:focus {
+        transform: scale(1.1);
+        box-shadow: 0 0 15px 3px #facc15;
+        z-index: 5;
+        outline: none;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .timeline-container {
+          padding-left: 30px;
+          padding-right: 30px;
+        }
+
+        .timeline-line {
+          left: 10px;
+        }
+
+        .timeline-point {
+          left: -28px;
+          width: 24px;
+          height: 24px;
+          font-size: 1.1rem;
+        }
+
+        .timeline-item {
+          padding-left: 2.5rem;
+          font-size: 0.95rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="relative">
+    <!-- Particles background -->
+    <div id="particles-js"></div>
+
+    <!-- Header -->
+    <header class="text-center py-10">
+      <h1 class="text-4xl md:text-5xl font-bold text-yellow-400 animate-pulse">
+        👁️🦅 Horus View
+      </h1>
+      <p class="mt-2 text-lg text-gray-300">
+        رحلة عبر الحضارة المصرية القديمة والحديثة
+      </p>
+    </header>
+
+    <!-- هل كنت تعلم؟ -->
+    <section class="section text-center px-4 py-8 sm:py-12 bg-transparent">
+  <h2 class="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8">
+    هل كنت تعلم؟
+  </h2>
+  <div
+    id="didYouKnow"
+    class="text-base sm:text-lg md:text-xl text-yellow-300 max-w-4xl mx-auto transition-opacity duration-500"
+  >
+    <!-- محتوى النص المتغير هنا -->
+  </div>
+</section>
+
+
+    <!-- خط زمني للحضارة المصرية -->
+    <section class="section px-4 py-10 bg-gray-900">
+  <h2
+    class="text-2xl sm:text-3xl font-extrabold text-yellow-400 text-center mb-12 tracking-wide"
+  >
+    خط زمني للحضارة المصرية
+  </h2>
+
+  <div
+    class="relative max-w-5xl mx-auto"
+    role="list"
+    aria-label="خط زمني للحضارة المصرية"
+  >
+    <!-- الخط العمودي / الأفقي -->
+    <div
+      class="hidden sm:block absolute top-12 left-1/2 transform -translate-x-1/2 w-1 h-[calc(100%-3rem)] bg-yellow-400"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-10"
+    >
+      <!-- عنصر خط زمني -->
+      <article
+        class="timeline-item flex items-start sm:flex-col sm:items-center sm:text-center max-w-xs mx-auto"
+        role="listitem"
+        tabindex="0"
+        aria-label="3100 قبل الميلاد - توحيد القطرين"
+      >
+        <div
+          class="timeline-point flex-shrink-0 bg-yellow-400 text-gray-900 rounded-full w-10 h-10 flex items-center justify-center text-xl sm:mb-4"
+          aria-hidden="true"
+        >
+          🕰️
+        </div>
+        <div class="sm:max-w-xs">
+          <h3 class="text-yellow-300 font-bold text-lg sm:text-xl mb-1">
+            3100 قبل الميلاد - توحيد القطرين
+          </h3>
+          <p class="text-gray-300 text-sm sm:text-base">
+            أسس الملك مينا أول دولة موحدة في التاريخ المصري القديم.
+          </p>
+        </div>
+      </article>
+
+      <article
+        class="timeline-item flex items-start sm:flex-col sm:items-center sm:text-center max-w-xs mx-auto"
+        role="listitem"
+        tabindex="0"
+        aria-label="2600 قبل الميلاد - عصر الأهرامات"
+      >
+        <div
+          class="timeline-point flex-shrink-0 bg-yellow-400 text-gray-900 rounded-full w-10 h-10 flex items-center justify-center text-xl sm:mb-4"
+          aria-hidden="true"
+        >
+          🏺
+        </div>
+        <div class="sm:max-w-xs">
+          <h3 class="text-yellow-300 font-bold text-lg sm:text-xl mb-1">
+            2600 قبل الميلاد - عصر الأهرامات
+          </h3>
+          <p class="text-gray-300 text-sm sm:text-base">
+            بناء أهرامات الجيزة تحت حكم الملك خوفو.
+          </p>
+        </div>
+      </article>
+
+      <article
+        class="timeline-item flex items-start sm:flex-col sm:items-center sm:text-center max-w-xs mx-auto"
+        role="listitem"
+        tabindex="0"
+        aria-label="1550 قبل الميلاد - الدولة الحديثة"
+      >
+        <div
+          class="timeline-point flex-shrink-0 bg-yellow-400 text-gray-900 rounded-full w-10 h-10 flex items-center justify-center text-xl sm:mb-4"
+          aria-hidden="true"
+        >
+          ⚔️
+        </div>
+        <div class="sm:max-w-xs">
+          <h3 class="text-yellow-300 font-bold text-lg sm:text-xl mb-1">
+            1550 قبل الميلاد - الدولة الحديثة
+          </h3>
+          <p class="text-gray-300 text-sm sm:text-base">
+            عصر القوة العسكرية والإمبراطورية في عهد تحتمس ورمسيس.
+          </p>
+        </div>
+      </article>
+
+      <article
+        class="timeline-item flex items-start sm:flex-col sm:items-center sm:text-center max-w-xs mx-auto"
+        role="listitem"
+        tabindex="0"
+        aria-label="30 قبل الميلاد - نهاية الحكم الفرعوني"
+      >
+        <div
+          class="timeline-point flex-shrink-0 bg-yellow-400 text-gray-900 rounded-full w-10 h-10 flex items-center justify-center text-xl sm:mb-4"
+          aria-hidden="true"
+        >
+          🇷🇴
+        </div>
+        <div class="sm:max-w-xs">
+          <h3 class="text-yellow-300 font-bold text-lg sm:text-xl mb-1">
+            30 قبل الميلاد - نهاية الحكم الفرعوني
+          </h3>
+          <p class="text-gray-300 text-sm sm:text-base">
+            انتهاء عصر الفراعنة بعد كليوباترا وضم مصر إلى الإمبراطورية
+            الرومانية.
+          </p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+<!-- قاموس الرموز الهيروغليفية -->
+    <section class="section" aria-label="قاموس الرموز الهيروغليفية">
+      <h2
+        class="text-3xl font-extrabold text-yellow-400 text-center mb-10 tracking-wide"
+      >
+        📜 قاموس الرموز الهيروغليفية
+      </h2>
+
+      <div
+        class="max-w-6xl mx-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 px-4 text-center select-none"
+      >
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc1"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓂀</div>
+          <span class="text-yellow-300 font-bold">عين حورس</span>
+          <div id="desc1" class="tooltip-text" role="tooltip">
+            رمز الحماية والقوة والعافية.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc2"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓆑</div>
+          <span class="text-yellow-300 font-bold">الحرف "ف"</span>
+          <div id="desc2" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "ف" في الهيروغليفية.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc3"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓇋</div>
+          <span class="text-yellow-300 font-bold">الحرف "ي"</span>
+          <div id="desc3" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "ي" في الهيروغليفية.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc4"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓃾</div>
+          <span class="text-yellow-300 font-bold">أسد</span>
+          <div id="desc4" class="tooltip-text" role="tooltip">
+            يرمز إلى القوة والشجاعة.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc5"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓂋</div>
+          <span class="text-yellow-300 font-bold">الحرف "ر"</span>
+          <div id="desc5" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "ر".
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc6"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓆣</div>
+          <span class="text-yellow-300 font-bold">الصقر</span>
+          <div id="desc6" class="tooltip-text" role="tooltip">
+            رمز الإله حورس، القوة والملك.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc7"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓈖</div>
+          <span class="text-yellow-300 font-bold">الماء</span>
+          <div id="desc7" class="tooltip-text" role="tooltip">
+            يرمز إلى الماء والحياة.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc8"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓋴</div>
+          <span class="text-yellow-300 font-bold">الحرف "س"</span>
+          <div id="desc8" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "س".
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc9"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓊹</div>
+          <span class="text-yellow-300 font-bold">رمز الحياة</span>
+          <div id="desc9" class="tooltip-text" role="tooltip">
+            يمثل الحياة والخلود.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc10"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓂝</div>
+          <span class="text-yellow-300 font-bold">الحرف "ع"</span>
+          <div id="desc10" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "ع".
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc11"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓌳</div>
+          <span class="text-yellow-300 font-bold">المدينة</span>
+          <div id="desc11" class="tooltip-text" role="tooltip">
+            يرمز إلى المدينة أو التجمع السكني.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc12"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓇓</div>
+          <span class="text-yellow-300 font-bold">الأرض</span>
+          <div id="desc12" class="tooltip-text" role="tooltip">
+            يرمز إلى الأرض أو التربة.
+          </div>
+        </div>
+
+        <!-- إضافات جديدة -->
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc13"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓂧</div>
+          <span class="text-yellow-300 font-bold">الحرف "د"</span>
+          <div id="desc13" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "د".
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc14"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓈎</div>
+          <span class="text-yellow-300 font-bold">السماء</span>
+          <div id="desc14" class="tooltip-text" role="tooltip">
+            يرمز إلى السماء والكون.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc15"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓇋𓇋</div>
+          <span class="text-yellow-300 font-bold">الحرف "ي" مزدوج</span>
+          <div id="desc15" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "ي" مضاعفًا.
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc16"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓅓</div>
+          <span class="text-yellow-300 font-bold">الحرف "م"</span>
+          <div id="desc16" class="tooltip-text" role="tooltip">
+            يمثل صوت الحرف "م".
+          </div>
+        </div>
+
+        <div
+          class="tooltip glass p-4 rounded-xl shadow-lg cursor-help glyph-item"
+          tabindex="0"
+          aria-describedby="desc17"
+        >
+          <div class="text-4xl mb-2" aria-hidden="true">𓂻</div>
+          <span class="text-yellow-300 font-bold">اليد</span>
+          <div id="desc17" class="tooltip-text" role="tooltip">
+            يرمز إلى اليد والعمل.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    
+
+    <!-- Scripts -->
+
+    <!-- Particles.js Initialization -->
+    <script>
+      particlesJS("particles-js", {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#ffffff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.1, random: false },
+          size: { value: 3, random: true },
+          line_linked: {
+            enable: true,
+            distance: 150,
+            color: "#facc15",
+            opacity: 0.15,
+            width: 1,
+          },
+          move: {
+            enable: true,
+            speed: 2,
+            direction: "none",
+            out_mode: "bounce",
+          },
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "repulse" },
+            onclick: { enable: true, mode: "push" },
+          },
+          modes: {
+            repulse: { distance: 100 },
+            push: { particles_nb: 4 },
+          },
+        },
+        retina_detect: true,
+      });
+    </script>
+
+    <!-- GSAP Animations -->
+    <script>
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Animate timeline items fade-in from right
+      gsap.utils.toArray(".timeline-item").forEach((item) => {
+        gsap.from(item, {
+          scrollTrigger: {
+            trigger: item,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+          opacity: 0,
+          x: 60,
+          duration: 1,
+          ease: "power3.out",
+        });
+      });
+
+      // Animate glyph items scale on scroll
+      gsap.utils.toArray(".glyph-item").forEach((glyph) => {
+        gsap.from(glyph, {
+          scrollTrigger: {
+            trigger: glyph,
+            start: "top 90%",
+            toggleActions: "play none none reverse",
+          },
+          opacity: 0,
+          scale: 0.8,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "back.out(1.7)",
+        });
+      });
+
+      // Did you know - rotate phrases
+      const facts = [
+        "كان الفراعنة يعتقدون أن عين حورس تمثل الحماية والشفاء.",
+        "الأهرامات بنيت باستخدام تقنيات هندسية متقدمة رغم عدم توفر التكنولوجيا الحديثة.",
+        "الهيروغليفية هي واحدة من أقدم أنظمة الكتابة في العالم.",
+        "رموز الهيروغليفية تمثل أصوات وكلمات وأفكارًا.",
+        "نهر النيل كان شريان الحياة للحضارة المصرية القديمة.",
+        "تم اكتشاف حجر رشيد عام 1799، وهو مفتاح لفك رموز الهيروغليفية.",
+      ];
+      let idx = 0;
+      const didYouKnowEl = document.getElementById("didYouKnow");
+
+      function showFact() {
+        didYouKnowEl.style.opacity = 0;
+        setTimeout(() => {
+          didYouKnowEl.textContent = facts[idx];
+          didYouKnowEl.style.opacity = 1;
+          idx = (idx + 1) % facts.length;
+        }, 600);
+      }
+
+      showFact();
+      setInterval(showFact, 6000);
+    </script>
+    <section class="section bg-gray-900 bg-opacity-40 rounded-xl max-w-7xl mx-auto px-4 sm:px-6 py-10 shadow-lg">
+  <h2 class="text-3xl font-extrabold text-yellow-400 text-center mb-10 tracking-wide">
+    🏛️ المعالم السياحية الأثرية
+  </h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    
+    <!-- كرت 1 -->
+    <article class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg"
+        alt="هرم خوفو"
+        class="rounded-md mb-4 w-full h-48 object-cover"
+        loading="lazy"
+      />
+      <h3 class="text-yellow-300 text-xl font-semibold mb-2">هرم خوفو</h3>
+      <p class="text-gray-200 text-sm leading-relaxed">
+        أكبر الأهرامات الثلاثة في الجيزة ويُعد أحد عجائب الدنيا السبع القديمة.
+      </p>
+    </article>
+
+    <!-- كرت 2 -->
+    <article class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <img
+        src="/img/سبب-بناء-معبد-الكرنك-وأبرز-مميزاته.jpg"
+        alt="معبد الكرنك"
+        class="text-yellow-300 text-xl font-semibold mb-2"
+        loading="lazy"
+      />
+      <h3 class="text-yellow-300 text-xl font-semibold mb-2">معبد الكرنك</h3>
+      <p class="text-gray-200 text-sm leading-relaxed">
+        مجمع معابد ضخم في الأقصر، مكرس لعبادة الإله آمون.
+      </p>
+    </article>
+
+    <!-- كرت 3 -->
+    <article class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <img
+        src="/img/وادي الملوك.jpeg"
+        alt="وادي الملوك"
+        class="rounded-md mb-4 w-full h-48 object-cover"
+        loading="lazy"
+      />
+      <h3 class="text-yellow-300 text-xl font-semibold mb-2">وادي الملوك</h3>
+      <p class="text-gray-200 text-sm leading-relaxed">
+        مقابر الفراعنة والملوك في الطور الجنوبي غرب الأقصر.
+      </p>
+    </article>
+
+    <!-- كرت 4 -->
+    <article class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <img
+        src="/img/معبد فيله.jpeg"
+        alt="معبد فيلة"
+        class="rounded-md mb-4 w-full h-48 object-cover"
+        loading="lazy"
+      />
+      <h3 class="text-yellow-300 text-xl font-semibold mb-2">معبد فيلة</h3>
+      <p class="text-gray-200 text-sm leading-relaxed">
+        معبد يقع بجزيرة فيلة بأسوان، مكرس للإلهة إيزيس، ويتميز بجمال معماري رائع.
+      </p>
+    </article>
+
+    <!-- كرت 5 -->
+    <article class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <img
+        src="/img/joshua-michaels-f5Vm_jmECdI-unsplash.jpg"
+        alt="أبو الهول"
+        class="rounded-md mb-4 w-full h-48 object-cover"
+        loading="lazy"
+      />
+      <h3 class="text-yellow-300 text-xl font-semibold mb-2">أبو الهول</h3>
+      <p class="text-gray-200 text-sm leading-relaxed">
+        تمثال ضخم بجوار أهرامات الجيزة، يرمز إلى الحماية والحكمة، يمثل رأس إنسان وجسم أسد.
+      </p>
+    </article>
+
+    <!-- كرت 6 -->
+    <article class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <img
+        src="/img/معبد حوارس.jpeg"
+        alt="معبد حورس"
+        class="rounded-md mb-4 w-full h-48 object-cover"
+        loading="lazy"
+      />
+      <h3 class="text-yellow-300 text-xl font-semibold mb-2">معبد حورس - إدفو</h3>
+      <p class="text-gray-200 text-sm leading-relaxed">
+        من أفضل المعابد المحفوظة في مصر القديمة، تم بناؤه لعبادة الإله حورس في مدينة إدفو.
+      </p>
+    </article>
+
+  </div>
+</section>
+
+   <!-- -------- -->
+    <section class="section bg-gray-900 bg-opacity-40 rounded-xl max-w-7xl mx-auto px-6 py-10 shadow-lg">
+  <h2 class="text-3xl font-extrabold text-yellow-400 text-center mb-10 tracking-wide">
+    🎬 فيديوهات تعليمية عن الحضارة المصرية
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <!-- الفيديو الأول -->
+    <article class="glass rounded-xl shadow-lg overflow-hidden hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <iframe
+        class="w-full h-48 md:h-56"
+        src="https://www.youtube.com/embed/twVxHeq4gr8"
+        title="مقدمة عن الحضارة المصرية القديمة"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
+      <div class="p-4">
+        <h3 class="text-yellow-300 font-semibold text-lg mb-1">
+          مقدمة عن الحضارة المصرية القديمة
+        </h3>
+        <p class="text-gray-200 text-sm">
+          فيديو يشرح أساسيات الحضارة المصرية من النشأة وحتى العصر الفرعوني.
+        </p>
+      </div>
+    </article>
+
+    <!-- الفيديو الثاني -->
+    <article class="glass rounded-xl shadow-lg overflow-hidden hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <iframe
+        class="w-full h-48 md:h-56"
+        src="https://www.youtube.com/embed/2P50dRnx96U"
+        title="الأهرامات وأسرارها"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
+      <div class="p-4">
+        <h3 class="text-yellow-300 font-semibold text-lg mb-1">
+          الأهرامات وأسرارها
+        </h3>
+        <p class="text-gray-200 text-sm">
+          تحليل علمي لبناء الأهرامات وتقنيات المصريين القدماء.
+        </p>
+      </div>
+    </article>
+
+    <!-- الفيديو الثالث -->
+    <article class="glass rounded-xl shadow-lg overflow-hidden hover:shadow-yellow-400 transition-shadow duration-300 cursor-pointer">
+      <iframe
+        class="w-full h-48 md:h-56"
+        src="https://www.youtube.com/embed/hnyG9q4wyCI"
+        title="كتابة الهيروغليفية"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
+      <div class="p-4">
+        <h3 class="text-yellow-300 font-semibold text-lg mb-1">
+          كتابة الهيروغليفية
+        </h3>
+        <p class="text-gray-200 text-sm">
+          شرح مبسط لكيفية قراءة وكتابة رموز الهيروغليفية.
+        </p>
+      </div>
+    </article>
+  </div>
+</section>
+
+    <section class="py-10 px-4 bg-gray-900 text-white">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-yellow-400 mb-8 text-center">
+          استكشافات أثرية جديدة
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- 1 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              مقبرة ملكية جديدة في الأقصر
+            </h3>
+            <p class="text-gray-200 mb-3">
+              اكتشاف مقبرة تضم توابيت مزينة ونقوش نادرة تعود للعصر الحديث.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 2 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              تمثال نادر للإله حورس
+            </h3>
+            <p class="text-gray-200 mb-3">
+              تمثال صغير محفوظ بدقة يجسد حورس في وضعية فريدة.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 3 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              بردية غير مكتملة تحوي طلاسم
+            </h3>
+            <p class="text-gray-200 mb-3">
+              بردية تم العثور عليها في موقع نادر تحتوي على طقوس دينية.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 4 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              أطلال معبد نادر في الدلتا
+            </h3>
+            <p class="text-gray-200 mb-3">
+              كشف معبد أثري كان مغطى بالطين منذ آلاف السنين.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 5 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              مجوهرات ملكية محفوظة بالكامل
+            </h3>
+            <p class="text-gray-200 mb-3">
+              كنز من الحلي الذهبية يعود لعصر الأسرة 18.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 6 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              مقبرة كاهن الشمس في الجيزة
+            </h3>
+            <p class="text-gray-200 mb-3">
+              رسومات جدارية تحكي طقوس الشمس والنجوم.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 7 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              تمائم فرعونية بحالة ممتازة
+            </h3>
+            <p class="text-gray-200 mb-3">
+              تمائم مصنوعة من الفيانس الأخضر تحمل رموزًا سحرية.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 8 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              أنفاق سرية تحت معبد الكرنك
+            </h3>
+            <p class="text-gray-200 mb-3">
+              ممرات خفية اكتُشفت مؤخرًا قد تكون استخدمت طقوسيًا.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+
+          <!-- 9 -->
+          <article
+            class="glass p-5 rounded-xl shadow-lg hover:shadow-yellow-400 transition duration-300 cursor-pointer"
+          >
+            <h3 class="text-yellow-300 font-semibold text-xl mb-2">
+              بقايا مومياء محفوظة في الواحات
+            </h3>
+            <p class="text-gray-200 mb-3">
+              تحليل الحمض النووي يكشف أصول غير متوقعة للمدفون.
+            </p>
+            <a href="#" class="text-yellow-400 hover:underline font-semibold"
+              >قراءة المزيد &rarr;</a
+            >
+          </article>
+        </div>
+      </div>
+    </section>
+    <!-- قسم التسجيل -->
+    <section id="map-section" class="py-10 px-4 bg-gray-900 text-white">
+      <div class="text-center mb-6">
+        <h2 class="text-3xl font-bold text-yellow-400">
+          خريطة المواقع الأثرية
+        </h2>
+        <p class="text-gray-300 mt-2">أهم 15 مكان أثري في مصر</p>
+      </div>
+      <div id="map" class="h-[500px] w-full rounded-xl shadow-md"></div>
+    </section>
+
+    <!-- 3. Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- 4. إعداد الخريطة -->
+    <script>
+      // إنشاء الخريطة
+      var map = L.map("map").setView([26.8206, 30.8025], 6); // مركز مصر
+
+      // إضافة طبقة الخريطة
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      // الأماكن الأثرية - 15 مكانًا
+      const sites = [
+        { name: "أهرامات الجيزة", lat: 29.9792, lng: 31.1342 },
+        { name: "معبد الكرنك", lat: 25.7188, lng: 32.6573 },
+        { name: "معبد الأقصر", lat: 25.6996, lng: 32.6396 },
+        { name: "وادي الملوك", lat: 25.7402, lng: 32.6014 },
+        { name: "أبو سمبل", lat: 22.3372, lng: 31.6258 },
+        { name: "معبد حتشبسوت", lat: 25.7371, lng: 32.6064 },
+        { name: "معبد إدفو", lat: 24.9786, lng: 32.8744 },
+        { name: "معبد فيلة", lat: 24.0258, lng: 32.8845 },
+        { name: "هرم سقارة", lat: 29.8712, lng: 31.2165 },
+        { name: "هرم ميدوم", lat: 29.4733, lng: 31.1856 },
+        { name: "دندرة", lat: 26.1641, lng: 32.6661 },
+        { name: "تانيس (صان الحجر)", lat: 30.9639, lng: 31.8833 },
+        { name: "أبيدوس", lat: 26.1856, lng: 31.9211 },
+        { name: "متحف القاهرة", lat: 30.0478, lng: 31.2336 },
+        { name: "قلعة صلاح الدين", lat: 30.0294, lng: 31.2617 },
+      ];
+
+      // عرض العلامات على الخريطة
+      sites.forEach((site) => {
+        L.marker([site.lat, site.lng])
+          .addTo(map)
+          .bindPopup(`<strong>${site.name}</strong>`);
+      });
+    </script>
+    <!-- معرض صور -->
+    <section class="py-12 bg-gray-900 text-white">
+  <div class="text-center mb-10">
+    <h2 class="text-3xl md:text-4xl font-extrabold text-yellow-400 animate-bounce">📸 معرض صور الآثار المصرية</h2>
+    <p class="text-gray-400 mt-2 animate-fadeIn">مجموعة من الصور الحقيقية لأشهر المعالم الأثرية في مصر</p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 px-4 max-w-7xl mx-auto">
+    <!-- عنصر صورة -->
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/681998761591562650.jpg" alt="أثر 1" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/alarabi_article_image_2019_6_17262_470.webp" alt="أثر 2" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/images معبد الاقصر.jpg" alt="أثر 3" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/joshua-michaels-f5Vm_jmECdI-unsplash.jpg" alt="أثر 4" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <!-- بقية الصور بنفس التنسيق -->
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/ricardo-gomez-angel-hAw4e-F4klY-unsplash.jpg" alt="أثر 5" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/tumblr_onn6l6E2ej1tvsmcio1_1280.jpg" alt="أثر 6" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/ابو سمبل.jpg" alt="أثر 7" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/سبب-بناء-معبد-الكرنك-وأبرز-مميزاته.jpg" alt="أثر 8" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <!-- وكرر ذلك لباقي الصور -->
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/1.jpg" alt="أثر 9" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/2..jpeg" alt="أثر 10" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/10.jpeg" alt="أثر 10" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/11.jpeg" alt="أثر 10" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/12.jpeg" alt="أثر 10" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/13.jpeg" alt="أثر 10" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/14.jpeg" alt="أثر 10" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+    <div class="overflow-hidden rounded-xl shadow-lg group transform transition duration-500 hover:scale-105 hover:shadow-yellow-500 hover:-translate-y-1">
+      <img src="/img/15.jpeg" alt="أثر 10" class="w-full h-48 object-cover transition duration-500 group-hover:scale-110">
+    </div>
+    <!-- استمر حتى آخر صورة -->
+  </div>
+</section>
+<!-- قسم تواصل معنا -->
+  <section class="section">
+    <h2 class="text-2xl font-bold text-center mb-6">📞 تواصل معنا</h2>
+    <form class="max-w-md mx-auto glass p-6 rounded-xl">
+      <label class="block mb-2 font-bold">الاسم</label>
+      <input type="text" class="w-full p-2 mb-4 rounded bg-gray-800 text-white" required>
+      <label class="block mb-2 font-bold">البريد الإلكتروني</label>
+      <input type="email" class="w-full p-2 mb-4 rounded bg-gray-800 text-white" required>
+      <label class="block mb-2 font-bold">الرسالة</label>
+      <textarea class="w-full p-2 mb-4 rounded bg-gray-800 text-white" rows="4"></textarea>
+      <button type="submit" class="bg-yellow-400 text-black px-4 py-2 rounded-full hover:bg-yellow-300">إرسال</button>
+    </form>
+  </section>
+   <!-- الفوتر -->
+
+<footer class="bg-gray-900 text-gray-400 border-t border-gray-700 mt-16">
+  <div class="container mx-auto px-4 py-8 text-center">
+    
+    <!-- العنوان -->
+    <h2 class="text-xl font-semibold text-yellow-400 mb-2">تواصل معنا</h2>
+    <p class="text-sm mb-6">نسعد بتواصلك معنا عبر الوسائل التالية</p>
+
+    <!-- روابط التواصل -->
+    <div class="flex justify-center flex-wrap gap-6 text-2xl mb-6">
+      <a href="info:mahemoudgamal6@gmail.com" title="البريد الإلكتروني" class="hover:text-yellow-300 transition">
+        <i class="fas fa-envelope"></i>
+        <span class="sr-only">البريد</span>
+      </a>
+      <a href="https://www.facebook.com/share/1QpYrGDByK/" target="_blank" title="فيسبوك" class="hover:text-yellow-300 transition">
+        <i class="fab fa-facebook"></i>
+        <span class="sr-only">فيسبوك</span>
+      </a>
+      <a href="https://x.com/Mahmoud36468898?t=B-uGJ25Qs1kkbSdup8LOOg&s=09" target="_blank" title="تويتر" class="hover:text-yellow-300 transition">
+        <i class="fab fa-twitter"></i>
+        <span class="sr-only">تويتر</span>
+      </a>
+      <a href="https://www.instagram.com/mahmoud_elbana47?igsh=dDMyaGoxZWRtYWkz" target="_blank" title="إنستغرام" class="hover:text-yellow-300 transition">
+        <i class="fab fa-instagram"></i>
+        <span class="sr-only">إنستغرام</span>
+      </a>
+      <a href="https://www.horusview.com" target="_blank" title="الموقع الرسمي" class="hover:text-yellow-300 transition">
+        <i class="fas fa-globe"></i>
+        <span class="sr-only">الموقع</span>
+      </a>
+    </div>
+
+    <!-- حقوق النشر -->
+    <p class="text-sm">
+      &copy; <span class="text-yellow-400 font-semibold">Horus View 👁️🦅</span> 2025 — جميع الحقوق محفوظة
+    </p>
+  </div>
+</footer>
+
+
+  </body>
+</html>
